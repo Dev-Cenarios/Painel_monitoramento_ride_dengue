@@ -1,0 +1,30 @@
+# Segredos / config local - NUNCA versionar
+.Renviron
+.env
+*.pem
+*.key
+
+# Artefatos de modelo do forecasting - regeneraveis via
+# `Rscript forecasting/train_models.R`
+forecasting/models/*.rds
+
+# Cache de malhas GeoJSON - regeneravel por global.R::preparar_malhas_base()
+data/geo/.malhas_base_cache.rds
+
+# Saidas de diagnostico de prep/02_municipios_sem_historico_rt.R (regeneraveis)
+prep/out/
+
+# Cache, lixo de depuracao e arquivos do shiny-server
+app_cache/
+Rplot*.png
+restart.txt
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini

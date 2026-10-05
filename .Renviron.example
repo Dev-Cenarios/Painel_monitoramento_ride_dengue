@@ -1,0 +1,9 @@
+# Copie para .Renviron (nao versionado) e preencha. Usado por etl_ride.R.
+PG_HOST=
+PG_PORT=5432
+PG_DB=
+PG_USER=
+PG_PASS=
+
+# Opcional: caminho alternativo do Parquet lido pelo app
+# DENGUE_PARQUET=data/dengue_ride_df.parquet
