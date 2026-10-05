@@ -65,11 +65,13 @@ Este roteiro é para quem nunca rodou o painel. Siga na ordem.
 
 - **R 4.1 ou superior** (https://cran.r-project.org) e, de preferência, o
   **RStudio** (https://posit.co/download/rstudio-desktop/).
-- Para **atualizar** os dados: acesso ao banco PostgreSQL `cenarios_ai`
-  (usuário e senha fornecidos pela equipe) e estar na rede interna onde ele
-  está acessível.
-  *Para só **abrir** o painel não é preciso banco: o Parquet com os dados já
-  vem no repositório.*
+- Para só **abrir** o painel não é preciso banco: o Parquet com os dados já
+  vem no repositório.
+- Para **atualizar** os dados, uma das duas opções:
+  - **qualquer pessoa**: só internet — `etl_ride_api.R` baixa direto da API
+    pública do InfoDengue;
+  - **equipe do projeto**: acesso ao banco PostgreSQL `cenarios_ai` —
+    `etl_ride.R`.
 
 ### 2.2 Baixar o projeto
 
@@ -113,7 +115,22 @@ Na primeira vez, o painel prepara as malhas dos mapas e grava um cache
 rápidas. A camada de **previsão** fica desativada até você treinar os
 modelos (passo 2.6).
 
-### 2.5 Atualizar os dados (precisa de acesso ao banco)
+### 2.5 Atualizar os dados
+
+**Opção A — pela API pública do InfoDengue (qualquer pessoa, só precisa de
+internet):**
+
+```r
+source("etl_ride_api.R")
+```
+
+Leva cerca de 1 minuto e termina com
+`[etl_ride_api] data/dengue_ride_df.parquet gravado: ... 34 municipio(s) ...`.
+Para outro período, rode no terminal `Rscript etl_ride_api.R 2020` (a partir
+de 2020) ou `Rscript etl_ride_api.R 2020 2024` (de 2020 a 2024). O padrão é de
+2015 até o ano corrente.
+
+**Opção B — pelo banco do projeto (equipe, precisa de credenciais):**
 
 1. Copie `.Renviron.example` para `.Renviron` (na mesma pasta) e preencha:
 
@@ -173,6 +190,32 @@ Diagrama de controle.
 | `pop` | População do município |
 | `tempmed`, `umidmed` | Temperatura e umidade médias da semana (usadas na previsão) |
 
+### 3.1 Equipe do projeto
+
+Os dados do InfoDengue são carregados no banco `cenarios_ai` (tabela
+`"Info_Dengue".dengue`). Peça as credenciais à equipe, configure o
+`.Renviron` e rode `etl_ride.R` (seção 2.5).
+
+### 3.2 Sem acesso ao banco do projeto
+
+- O `data/dengue_ride_df.parquet` versionado já permite rodar o painel
+  inteiro, com os dados até a data do último commit.
+- Para dados novos, use **`etl_ride_api.R`**: ele baixa cada município da
+  API pública do InfoDengue (`https://info.dengue.mat.br/api/alertcity`,
+  documentação em https://info.dengue.mat.br/services/api), renomeia as
+  colunas para os nomes da tabela acima (`data_iniSE` → `data_ini_se`,
+  `SE` → `se`, `Rt` → `rt` etc.), acrescenta a identificação do município e
+  grava o mesmo Parquet que o `etl_ride.R` gera a partir do banco. Não
+  precisa de credenciais.
+- Os dois caminhos dão o mesmo resultado; pequenas diferenças nas semanas
+  mais recentes são normais (o InfoDengue revisa os números conforme chegam
+  notificações atrasadas).
+- Para outra região, troque a lista de códigos IBGE (`RIDE_MUNICIPIOS` em
+  `etl_ride_api.R`, ou `ride_codes_oficiais` em `etl_ride.R`): o painel
+  monta os seletores e os mapas a partir do que existe no Parquet, sem lista
+  de municípios no código do app. Se a região tiver outras UFs, rode também
+  `prep/00_prepara_geojson.R`.
+
 ---
 
 ## 4. Ordem de execução dos scripts
@@ -180,7 +223,7 @@ Diagrama de controle.
 | # | Script | Quando rodar | Gera |
 |---|---|---|---|
 | 0 | criar `.Renviron` | uma vez por máquina (só para atualizar dados) | credenciais |
-| 1 | `etl_ride.R` | a cada atualização de dados | `data/dengue_ride_df.parquet` |
+| 1 | `etl_ride_api.R` (API pública) **ou** `etl_ride.R` (banco do projeto) | a cada atualização de dados | `data/dengue_ride_df.parquet` |
 | 2 | `prep/00_prepara_geojson.R` | **só** se for preciso baixar as malhas de novo (já vêm no repositório) | `data/geo/*.geojson` |
 | 3 | `prep/01_simplifica_malhas.R` | depois do passo 2 | as mesmas malhas, mais leves |
 | 4 | `forecasting/train_models.R` | depois do passo 1 (opcional, recomendado a cada atualização) | `forecasting/models/*.rds`, `forecasting/model_metrics.csv` |
@@ -307,6 +350,7 @@ dengue_ride/
 ├── global.R                  # Pacotes, DuckDB sobre o Parquet, dicionário geográfico, malhas, helpers
 ├── ui.R                      # Interface (bslib::page_navbar)
 ├── server.R                  # Reactives compartilhadas + orquestração dos módulos
+├── etl_ride_api.R            # API pública do InfoDengue → data/dengue_ride_df.parquet (sem credenciais)
 ├── etl_ride.R                # PostgreSQL ("Info_Dengue".dengue) → data/dengue_ride_df.parquet
 ├── .Renviron.example         # Modelo das credenciais (copiar para .Renviron)
 ├── R/
@@ -370,10 +414,11 @@ Exemplo semanal (segunda-feira, 3h), editando com `crontab -e` no servidor e
 ajustando o caminho:
 
 ```cron
-0 3 * * 1 cd /home/USUARIO/shiny-server/dengue_ride && (Rscript etl_ride.R && Rscript forecasting/train_models.R && touch restart.txt) >> /tmp/dengue_ride_etl.log 2>&1
+0 3 * * 1 cd /home/USUARIO/shiny-server/dengue_ride && (Rscript etl_ride_api.R && Rscript forecasting/train_models.R && touch restart.txt) >> /tmp/dengue_ride_etl.log 2>&1
 ```
 
-O `Rscript` lê o `.Renviron` da pasta em que é executado, por isso o `cd`
+Troque `etl_ride_api.R` por `etl_ride.R` para usar o banco do projeto. O
+`Rscript` lê o `.Renviron` da pasta em que é executado, por isso o `cd`
 antes dos scripts é obrigatório.
 
 ---
@@ -414,7 +459,9 @@ antes dos scripts é obrigatório.
   (municípios com poucos casos) a incerteza é maior. Os mesmos dados de
   *backtest* definem os pesos e as métricas do ensemble (leve otimismo nas
   métricas do ensemble).
-- Os dados dependem da atualização da tabela `"Info_Dengue".dengue` no banco.
+- `etl_ride.R` depende da atualização da tabela `"Info_Dengue".dengue` no
+  banco do projeto; `etl_ride_api.R` depende da disponibilidade da API do
+  InfoDengue.
 
 ---
 
