@@ -173,7 +173,7 @@ Diagrama de controle.
 
 | Dado | Origem | Onde fica no projeto | Versionado? |
 |---|---|---|---|
-| **Casos e estimativas semanais por município** | **InfoDengue** (https://info.dengue.mat.br — Fiocruz/FGV), carregado no banco PostgreSQL `cenarios_ai`, tabela `"Info_Dengue".dengue`. | `data/dengue_ride_df.parquet` (gerado por `etl_ride.R`) | ✅ Sim (dado público agregado) |
+| **Casos e estimativas semanais por município** | **InfoDengue** (https://info.dengue.mat.br — Fiocruz/FGV), pela API pública (`etl_ride_api.R`) ou pelo banco PostgreSQL `cenarios_ai`, tabela `"Info_Dengue".dengue` (`etl_ride.R`). | `data/dengue_ride_df.parquet` | ✅ Sim (dado público agregado) |
 | **Lista dos 34 municípios** | Lei Complementar nº 163/2018 (composição da RIDE-DF), códigos IBGE de 7 dígitos. | dentro de `etl_ride.R` | ✅ Sim |
 | **Malhas de UFs e municípios** | API de malhas do IBGE (`servicodados.ibge.gov.br/api/v3/malhas`), baixadas por `prep/00_prepara_geojson.R`. | `data/geo/*.geojson` | ✅ Sim |
 
@@ -427,7 +427,7 @@ antes dos scripts é obrigatório.
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
-| `Arquivo Parquet nao encontrado` | Diretório de trabalho errado ou Parquet ausente. | `getwd()` deve ser a pasta com `global.R`; rode `etl_ride.R` se o arquivo não existir. |
+| `Arquivo Parquet nao encontrado` | Diretório de trabalho errado ou Parquet ausente. | `getwd()` deve ser a pasta com `global.R`; rode `etl_ride_api.R` (ou `etl_ride.R`) se o arquivo não existir. |
 | `could not connect to server` / `password authentication failed` (ETL) | `.Renviron` ausente/incompleto, R não reiniciado ou fora da rede do banco. | Confira `Sys.getenv("PG_HOST")`, reinicie o R, verifique rede/VPN. |
 | Mensagem "Forecasting: artefatos ausentes" no log | Modelos não treinados. | Rode `Rscript forecasting/train_models.R` (opcional — o resto do painel funciona). |
 | Mapa vazio ou "municípios sem polígono" | Malhas ausentes em `data/geo/`. | Rode `prep/00_prepara_geojson.R` e depois `prep/01_simplifica_malhas.R`. |
