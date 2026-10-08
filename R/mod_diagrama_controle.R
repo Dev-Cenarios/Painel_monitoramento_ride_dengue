@@ -269,7 +269,7 @@ mod_diagrama_controle_server <- function(id, serie_semanal, geo) {
         )
       })
     }) |>
-      shiny::bindCache(geo(), Sys.Date())
+      shiny::bindCache(geo(), Sys.Date(), VERSAO_DADOS, cache = CACHE_PREVISAO)
 
     # Temporadas (ano sanitario) que TEM alguma linha "previsto". Normalmente
     # uma so, mas a reprojecao das `semanas_recentes` (get_dengue_forecast())

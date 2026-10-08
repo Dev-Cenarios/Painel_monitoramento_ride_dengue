@@ -12,6 +12,15 @@ library(dplyr)
 library(echarts4r)
 library(DT)  # tabela da aba Analises (R/mod_epi_scanner_server.R)
 
+# Cache do CSS do tema (Sass) em disco, em app_cache/ (pasta criada no
+# servidor com dono shiny, fora do git): o Bootstrap do tema e compilado uma
+# vez e reaproveitado entre processos e reinicios (touch restart.txt), em vez
+# de ser recompilado a cada processo R novo - a primeira visita depois de um
+# reinicio deixa de pagar essa compilacao.
+if (dir.exists("app_cache") && file.access("app_cache", 2) == 0) {
+  options(sass.cache = sass::sass_file_cache(file.path("app_cache", "sass")))
+}
+
 
 # ------------------------------------------------------------ fonte de dados --
 # Parquet local lido pelo DuckDB.
@@ -720,6 +729,20 @@ FORECAST_ROTULO <- function(chave) {
   if (startsWith(chave, "ens_"))     return(sprintf("Ensemble %s",
                                     fc_rotulo_classe(sub("^ens_", "", chave))))
   fc_rotulo_modelo(chave)
+}
+
+# Cache em DISCO da previsao (app_cache/previsao), compartilhado entre
+# processos e reinicios: o calculo (alguns modelos sao reajustados ao vivo)
+# era refeito pela primeira visita apos cada `touch restart.txt` ou troca de
+# processo. A chave inclui o dia e VERSAO_DADOS (tamanho + data do Parquet),
+# entao uma atualizacao do ETL nunca serve previsao velha. Sem app_cache/
+# gravavel, cai no cache em memoria padrao ("app").
+VERSAO_DADOS <- paste(file.size(PARQUET_DENGUE), as.numeric(file.mtime(PARQUET_DENGUE)))
+CACHE_PREVISAO <- if (dir.exists("app_cache") && file.access("app_cache", 2) == 0) {
+  cachem::cache_disk(file.path("app_cache", "previsao"),
+                     max_size = 200 * 1024^2, max_age = 3 * 24 * 3600)
+} else {
+  "app"
 }
 
 # --------------------------------------------------------- modulos do app ----

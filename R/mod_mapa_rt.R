@@ -31,6 +31,9 @@
 # pontos ficam com opacidade reduzida. Aqui e recalculo da serie (nao proxy):
 # sao ~29 pontos, entao o setOption e instantaneo e o dado pesado (janelas
 # historicas em quadro()) continua cacheado por `input$janela`, intacto.
+#
+# Municipios "sem historico suficiente" ficam OCULTOS por padrao (opcao no
+# popover do card); o municipio em foco aparece mesmo assim.
 # ==============================================================================
 
 # Limiares de incidencia ACUMULADA no ano ate a semana de referencia (nao e a
@@ -75,6 +78,14 @@ mod_mapa_rt_controles <- function(id) {
     shiny::sliderInput(
       ns("janela"), "Janela de comparação (semanas)",
       min = 1, max = 8, value = 4, step = 1
+    ),
+    # Desligado por padrao: sem historico na janela, os eixos nao tem
+    # denominador e esses municipios ficam numa faixa artificial no topo do
+    # grafico, poluindo a leitura dos quadrantes.
+    shiny::checkboxInput(
+      ns("mostrar_sem_base"),
+      "Mostrar municípios sem histórico suficiente",
+      value = FALSE
     ),
     shiny::helpText(
       shiny::tags$small(
@@ -183,7 +194,13 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
       series_forma <- Filter(Negate(is.null), series_forma)
       
       # -- serie "sem base": municipios sem denominador valido --------------
-      sem_base <- d[d$quadrante == "sem_base", , drop = FALSE]
+      # Ocultos por padrao (opcao no popover); o municipio em foco aparece
+      # mesmo assim, para o destaque nao sumir quando ele nao tem historico.
+      mostrar_sem_base <- isTRUE(input$mostrar_sem_base)
+      e_sem_base <- d$quadrante == "sem_base"
+      sel_sem_base <- has_sel & !is.na(d$municipio_geocodigo) & d$municipio_geocodigo == sel_cod
+      sem_base <- d[e_sem_base & (mostrar_sem_base | sel_sem_base), , drop = FALSE]
+      n_ocultos <- sum(e_sem_base) - nrow(sem_base)
       y_faixa_sem_base <- {
         ymax <- suppressWarnings(max(d$taxa_cresc, na.rm = TRUE))
         if (!is.finite(ymax)) ymax <- 1
@@ -281,9 +298,15 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
       ))
       
       subtitulo <- sprintf(
-        "Janela atual: %s–%s | Janela anterior: %s–%s | Incidência acumulada em %d até SE %02d",
-        q$atual_ini, q$atual_fim, q$ant_ini, q$ant_fim, q$ano_recente, q$se_ref_semana
+        "Janela atual: %s–%s | Janela anterior: %s–%s | Incidência acumulada em %d até SE %02d%s",
+        q$atual_ini, q$atual_fim, q$ant_ini, q$ant_fim, q$ano_recente, q$se_ref_semana,
+        if (n_ocultos > 0) sprintf(" | %d sem histórico suficiente (ocultos)", n_ocultos) else ""
       )
+
+      # Legenda e eixo Y so reservam a faixa "sem historico" quando ela aparece.
+      quadrantes_legenda <- names(CORES_QUADRANTE)
+      if (nrow(sem_base) == 0) quadrantes_legenda <- setdiff(quadrantes_legenda, "sem_base")
+      y_max_minimo <- if (nrow(sem_base) > 0) round(y_faixa_sem_base + 0.15, 2) else 0
       
       echarts4r::e_charts() |>
         echarts4r::e_list(list(
@@ -302,7 +325,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
               itemWidth = 14, itemHeight = 12, itemGap = 14
             ),
             list(
-              data = lapply(names(CORES_QUADRANTE), function(k) list(
+              data = lapply(quadrantes_legenda, function(k) list(
                 name = ROTULOS_QUADRANTE[[k]],
                 itemStyle = list(color = CORES_QUADRANTE[[k]])
               )),
@@ -331,7 +354,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
             nameLocation = "middle", nameGap = 46, min = 0,
             max = htmlwidgets::JS(sprintf(
               "function(v){ return Math.max(v.max*1.1, %s, 1.3).toFixed(1); }",
-              round(y_faixa_sem_base + 0.15, 2)
+              y_max_minimo
             )),
             nameTextStyle = list(color = PALETA_DENGUE[["sub"]], fontSize = 11),
             axisLabel = list(color = PALETA_DENGUE[["sub"]], fontSize = 10,

@@ -28,7 +28,7 @@
 bslib::page_navbar(
   title        = "Dengue RIDE",
   theme        = TEMA_DENGUE3D,
-  window_title = "Dengue RIDE — Painel Epidemiológico",
+  window_title = "Dengue RIDE — Painel de Monitoramento Epidemiológico",
   padding      = "1rem",
   fillable     = FALSE,
   
@@ -48,7 +48,7 @@ bslib::page_navbar(
         shiny::tags$div(
           shiny::tags$h4(class = "mb-0 fw-semibold", "Dengue RIDE"),
           shiny::tags$span(class = "text-muted small",
-                           "Painel de vigilância epidemiológica · fonte InfoDengue")
+                           "Painel de monitoramento epidemiológico · fonte InfoDengue")
         ),
         shiny::tags$span(
           class = "text-muted small",
