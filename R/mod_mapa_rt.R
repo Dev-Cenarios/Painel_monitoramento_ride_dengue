@@ -48,15 +48,15 @@ LIMIARES_FORMA <- list(
 # "mediana" seria um unico valor arbitrario, nao uma referencia sazonal.
 MIN_ANOS_HISTORICO_RT <- 2L
 
-# Cores por quadrante, na familia chocolate (nao verde/amarelo/laranja/vermelho
-# do design original) para manter a paleta unica do painel. A separacao fica
-# por TOM, do mais claro (melhor cenario) ao mais escuro (pior cenario).
+# Cores por quadrante, em escala divergente (mesma regra do dengue_df):
+# abaixo do normal em azul, acima em terracota; dentro de cada lado, o tom
+# mais forte e o pior cenario. Validada para daltonismo em todos os pares.
 CORES_QUADRANTE <- c(
-  abaixo_estavel      = unname(PALETA_CHOCOLATE[["cacau"]]),      # abaixo do normal, caindo
-  abaixo_crescendo    = unname(PALETA_CHOCOLATE[["caramelo"]]),   # abaixo do normal, subindo
-  acima_desacelerando = unname(PALETA_CHOCOLATE[["chocolate"]]),  # acima do normal, caindo
-  acima_crescendo     = unname(PALETA_CHOCOLATE[["amargo"]]),     # acima do normal, subindo - pior caso
-  sem_base            = unname(PALETA_CHOCOLATE[["taupe"]])       # sem historico/janela anterior p/ comparar
+  abaixo_estavel      = unname(TONS_AZUL[["700"]]),      # abaixo do normal, caindo
+  abaixo_crescendo    = unname(TONS_AZUL[["400"]]),      # abaixo do normal, subindo
+  acima_desacelerando = unname(TONS_DENGUE[["400"]]),    # acima do normal, caindo
+  acima_crescendo     = unname(TONS_DENGUE[["700"]]),    # acima do normal, subindo - pior caso
+  sem_base            = unname(PALETA_DENGUE[["sub"]])   # sem historico/janela anterior p/ comparar
 )
 
 ROTULOS_QUADRANTE <- c(
@@ -128,7 +128,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
         NA_integer_
       }
       has_sel      <- !is.na(sel_cod)
-      cor_destaque <- unname(PALETA_CHOCOLATE[["tinta"]])
+      cor_destaque <- unname(PALETA_DENGUE[["tinta"]])
       
       # -- tamanho da bolha: raiz de casos, reescalado para 14-46px ----------
       raiz <- sqrt(pmax(d$casos_atual, 0))
@@ -154,7 +154,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
             itemStyle  = list(
               color       = if (sel_i) cor_destaque else CORES_QUADRANTE[[sub$quadrante[i]]],
               opacity     = if (has_sel && !sel_i) 0.3 else 1,
-              borderColor = PALETA_CHOCOLATE[["creme"]],
+              borderColor = PALETA_DENGUE[["superficie"]],
               borderWidth = if (sel_i) 2 else 0
             ),
             label      = list(
@@ -163,9 +163,9 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
               position     = "top",
               fontSize     = if (sel_i) 13 else 9,
               fontWeight   = if (sel_i) "bold" else "normal",
-              color        = PALETA_CHOCOLATE[["tinta"]],
+              color        = PALETA_DENGUE[["tinta"]],
               opacity      = if (has_sel && !sel_i) 0.35 else 1,
-              backgroundColor = if (sel_i) "rgba(253,247,240,0.92)" else "transparent",
+              backgroundColor = if (sel_i) "rgba(255,255,255,0.92)" else "transparent",
               padding      = if (sel_i) c(2, 5, 2, 5) else 0,
               borderRadius = if (sel_i) 3 else 0
             )
@@ -177,7 +177,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
           type   = "scatter",
           symbol = f$simbolo,
           data   = pontos,
-          emphasis = list(itemStyle = list(shadowBlur = 10, shadowColor = "rgba(62,33,16,.35)"))
+          emphasis = list(itemStyle = list(shadowBlur = 10, shadowColor = cor_alpha(PALETA_DENGUE[["tinta"]], 0.35)))
         )
       })
       series_forma <- Filter(Negate(is.null), series_forma)
@@ -200,7 +200,7 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
             itemStyle  = list(
               color       = if (sel_i) cor_destaque else CORES_QUADRANTE[["sem_base"]],
               opacity     = if (sel_i) 1 else if (has_sel) 0.25 else 0.5,
-              borderColor = if (sel_i) PALETA_CHOCOLATE[["creme"]] else CORES_QUADRANTE[["sem_base"]],
+              borderColor = if (sel_i) PALETA_DENGUE[["superficie"]] else CORES_QUADRANTE[["sem_base"]],
               borderWidth = if (sel_i) 2 else 1.5
             ),
             label      = list(
@@ -209,9 +209,9 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
               position     = "top",
               fontSize     = if (sel_i) 13 else 9,
               fontWeight   = if (sel_i) "bold" else "normal",
-              color        = if (sel_i) PALETA_CHOCOLATE[["tinta"]] else PALETA_CHOCOLATE[["taupe"]],
+              color        = if (sel_i) PALETA_DENGUE[["tinta"]] else PALETA_DENGUE[["sub"]],
               opacity      = if (has_sel && !sel_i) 0.35 else 1,
-              backgroundColor = if (sel_i) "rgba(253,247,240,0.92)" else "transparent",
+              backgroundColor = if (sel_i) "rgba(255,255,255,0.92)" else "transparent",
               padding      = if (sel_i) c(2, 5, 2, 5) else 0,
               borderRadius = if (sel_i) 3 else 0
             )
@@ -232,12 +232,12 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
         markLine = list(
           silent = TRUE, symbol = list("none", "none"), animation = FALSE,
           data = list(
-            list(xAxis = 1, lineStyle = list(color = PALETA_CHOCOLATE[["taupe"]], type = "dashed", width = 1.2),
+            list(xAxis = 1, lineStyle = list(color = PALETA_DENGUE[["sub"]], type = "dashed", width = 1.2),
                  label  = list(formatter = "Mediana histórica", position = "insideEndTop",
-                               color = PALETA_CHOCOLATE[["taupe"]], fontSize = 10)),
-            list(yAxis = 1, lineStyle = list(color = PALETA_CHOCOLATE[["amargo"]], type = "dashed", width = 1.5),
+                               color = PALETA_DENGUE[["sub"]], fontSize = 10)),
+            list(yAxis = 1, lineStyle = list(color = PALETA_DENGUE[["tinta"]], type = "dashed", width = 1.5),
                  label  = list(formatter = "Estável (Y=1)", position = "end",
-                               color = PALETA_CHOCOLATE[["amargo"]], fontSize = 10))
+                               color = PALETA_DENGUE[["tinta"]], fontSize = 10))
           )
         )
       ))
@@ -291,14 +291,14 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
           title = list(
             text = sprintf("Tendência por município — %d semana(s)", input$janela),
             subtext = subtitulo,
-            textStyle    = list(color = PALETA_CHOCOLATE[["tinta"]], fontSize = 14, fontWeight = "bold"),
-            subtextStyle = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 10)
+            textStyle    = list(color = PALETA_DENGUE[["tinta"]], fontSize = 14, fontWeight = "bold"),
+            subtextStyle = list(color = PALETA_DENGUE[["sub"]], fontSize = 10)
           ),
           legend = list(
             list(
               data = lapply(LIMIARES_FORMA, function(f) f$rotulo),
               top = 46, left = "center",
-              textStyle = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 10),
+              textStyle = list(color = PALETA_DENGUE[["sub"]], fontSize = 10),
               itemWidth = 14, itemHeight = 12, itemGap = 14
             ),
             list(
@@ -307,24 +307,24 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
                 itemStyle = list(color = CORES_QUADRANTE[[k]])
               )),
               bottom = 6, left = "center",
-              textStyle = list(color = PALETA_CHOCOLATE[["tinta"]], fontSize = 10),
+              textStyle = list(color = PALETA_DENGUE[["tinta"]], fontSize = 10),
               itemWidth = 14, itemHeight = 12, itemGap = 12
             )
           ),
           tooltip = list(
             trigger = "item", formatter = js_tooltip,
             backgroundColor = "#FFFFFF",
-            borderColor = PALETA_CHOCOLATE[["areia"]], borderWidth = 1,
-            textStyle = list(color = PALETA_CHOCOLATE[["tinta"]])
+            borderColor = PALETA_DENGUE[["linha"]], borderWidth = 1,
+            textStyle = list(color = PALETA_DENGUE[["tinta"]])
           ),
           xAxis = list(
             type = "value", name = "Vs. mediana histórica (mediana = 1x)",
             nameLocation = "middle", nameGap = 32, min = 0,
             max = htmlwidgets::JS("function(v){ return Math.max(v.max*1.15, 1.3).toFixed(1); }"),
-            nameTextStyle = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 11),
-            axisLabel = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 10,
+            nameTextStyle = list(color = PALETA_DENGUE[["sub"]], fontSize = 11),
+            axisLabel = list(color = PALETA_DENGUE[["sub"]], fontSize = 10,
                              formatter = htmlwidgets::JS("function(v){ return v.toFixed(1)+'x'; }")),
-            splitLine = list(lineStyle = list(color = PALETA_CHOCOLATE[["areia"]], type = "dashed"))
+            splitLine = list(lineStyle = list(color = PALETA_DENGUE[["linha"]], type = "dashed"))
           ),
           yAxis = list(
             type = "value", name = "Vs. janela anterior (estável = 1x)",
@@ -333,19 +333,20 @@ mod_mapa_rt_server <- function(id, selected_location = shiny::reactive(NULL)) {
               "function(v){ return Math.max(v.max*1.1, %s, 1.3).toFixed(1); }",
               round(y_faixa_sem_base + 0.15, 2)
             )),
-            nameTextStyle = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 11),
-            axisLabel = list(color = PALETA_CHOCOLATE[["taupe"]], fontSize = 10,
+            nameTextStyle = list(color = PALETA_DENGUE[["sub"]], fontSize = 11),
+            axisLabel = list(color = PALETA_DENGUE[["sub"]], fontSize = 10,
                              formatter = htmlwidgets::JS(
                                "function(v){ return v.toLocaleString('pt-BR',{minimumFractionDigits:1}); }"
                              )),
-            splitLine = list(lineStyle = list(color = PALETA_CHOCOLATE[["areia"]], type = "dashed"))
+            splitLine = list(lineStyle = list(color = PALETA_DENGUE[["linha"]], type = "dashed"))
           ),
           series = todas_series,
           dataZoom = list(
             list(type = "inside", xAxisIndex = 0, filterMode = "none", zoomOnMouseWheel = TRUE),
             list(type = "inside", yAxisIndex = 0, filterMode = "none", zoomOnMouseWheel = TRUE)
           ),
-          grid = list(left = "9%", right = "4%", top = "26%", bottom = "18%")
+          grid = list(left = "9%", right = "4%", top = "26%", bottom = "18%"),
+          textStyle = list(fontFamily = FONTE_GRAFICO)
         ))
     })
   })

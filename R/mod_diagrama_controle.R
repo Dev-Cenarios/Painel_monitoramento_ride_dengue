@@ -44,37 +44,26 @@ MIN_ANOS_REFERENCIA <- 3L
 # constante para enxugar o painel). Antigo default = 5.
 N_TEMPORADAS_REFERENCIA <- 5L
 
-# Paleta do script de referencia do professor (nao a rampa chocolate).
-COR_MEDIANA          <- "#0c2c84"  # mediana (Q2)
-COR_ATUAL            <- "#feb24c"  # incidencia da temporada em analise / ensemble global
-COR_NOWCAST          <- "#d95f0e"  # linha de nowcast
-COR_LIMITE_SUPERIOR  <- "#d9d9d9"  # area mediana..Q3
-COR_LIMITE_INFERIOR  <- "#e5e5e5"  # area Q1..mediana
+# Canal endemico na paleta comum (PALETA_DENGUE, em global.R): faixas em azul
+# claro (referencia historica, recua), mediana em azul escuro e a temporada em
+# analise em terracota forte - o olho vai direto para a curva atual. O nowcast
+# e a mesma grandeza estimada, entao fica no mesmo tom, mais claro e pontilhado.
+COR_MEDIANA          <- PALETA_DENGUE[["azul_titulo"]]  # mediana (Q2)
+COR_ATUAL            <- PALETA_DENGUE[["dengue_forte"]] # incidencia da temporada em analise
+COR_NOWCAST          <- TONS_DENGUE[["400"]]            # linha de nowcast
+COR_LIMITE_SUPERIOR  <- TONS_AZUL[["100"]]              # area mediana..Q3
+COR_LIMITE_INFERIOR  <- TONS_AZUL[["50"]]               # area Q1..mediana
 
-# Cores das linhas de previsao - de proposito FORA da rampa chocolate do resto
-# do painel (canal endemico, linha observada, nowcast). Ali a paleta unica faz
-# sentido (identidade visual); aqui a prioridade e o oposto: diferenciar
-# rapidamente varias linhas tracejadas sobrepostas, entao usamos uma paleta
-# categorica de alto contraste/saturacao (uma cor por linha, nada de tons
-# proximos). O global fica com uma cor propria (a "linha principal" da
-# previsao); classes e modelos cada um com sua familia de tons vivos.
-COR_PREV_GLOBAL <- "#E03131"  # vermelho vivo - Ensemble global
+# Linhas de previsao: o ensemble global e a "linha principal" (tinta, mais
+# grossa, com banda); classes e modelos usam a paleta categorica Cenarios
+# (SERIES_CENARIOS) a partir da serie 3 - as series 1 (azul) e 2 (terracota)
+# ja estao ocupadas pelo canal e pela curva observada.
+COR_PREV_GLOBAL <- PALETA_DENGUE[["tinta"]]  # Ensemble global
 
-.DIAG_CORES_CLASSE <- c(
-  "#1971C2",  # azul vivo      - Estatisticos
-  "#0CA678",  # verde-agua vivo - Machine Learning
-  "#9C36B5"   # roxo vivo      - Mecanicistas (quando tiver modelo)
-)
+.DIAG_CORES_CLASSE <- SERIES_CENARIOS[3:5]  # Estatisticos, Machine Learning, Mecanicistas
 # Uma cor por modelo, na ordem de FC_MODELOS (arima, sarima, gam, stlets, rf).
 # Ciclo por modulo se entrarem mais modelos que cores.
-.DIAG_CORES_MODELO <- c(
-  "#4263EB",  # indigo       - 1o modelo (ARIMA + Fourier)
-  "#66A80F",  # verde-lima   - 2o (SARIMA)
-  "#F76707",  # laranja vivo - 3o (GAM)
-  "#D6336C",  # magenta/rosa - 4o (STL + ETS)
-  "#15AABF",  # ciano vivo   - 5o (Random Forest)
-  "#F59F00"   # ambar        - 6o modelo (futuro)
-)
+.DIAG_CORES_MODELO <- SERIES_CENARIOS[3:8]
 
 #' Catalogo das linhas de previsao disponiveis.
 #'
@@ -526,28 +515,28 @@ mod_diagrama_controle_server <- function(id, serie_semanal, geo) {
         echarts4r::e_area(
           amplitude_inferior, name = "Limite inferior", stack = "canal",
           symbol = "none", silent = TRUE, lineStyle = list(opacity = 0),
-          areaStyle = list(color = COR_LIMITE_INFERIOR, opacity = 0.9),
+          areaStyle = list(color = COR_LIMITE_INFERIOR, opacity = 1),
           itemStyle = list(color = COR_LIMITE_INFERIOR)
         ) |>
         echarts4r::e_area(
           amplitude_superior, name = "Limite superior", stack = "canal",
           symbol = "none", silent = TRUE, lineStyle = list(opacity = 0),
-          areaStyle = list(color = COR_LIMITE_SUPERIOR, opacity = 0.9),
+          areaStyle = list(color = COR_LIMITE_SUPERIOR, opacity = 1),
           itemStyle = list(color = COR_LIMITE_SUPERIOR)
         ) |>
         echarts4r::e_line(
           q2, name = "Mediana (Q2)", symbol = "none",
-          lineStyle = list(color = COR_MEDIANA, width = 1, type = "solid"),
+          lineStyle = list(color = COR_MEDIANA, width = 1.2, type = "solid"),
           itemStyle = list(color = COR_MEDIANA)
         ) |>
         echarts4r::e_line(
           inc_notif, name = nome_obs, symbol = "none",
-          lineStyle = list(color = COR_ATUAL, width = 2, type = "solid"),
+          lineStyle = list(color = COR_ATUAL, width = 2.2, type = "solid"),
           itemStyle = list(color = COR_ATUAL), connectNulls = FALSE
         ) |>
         echarts4r::e_mark_line(
           serie = nome_obs, data = list(xAxis = idx_corte), title = "",
-          symbol = "none", lineStyle = list(color = "gray", type = "solid", width = 1)
+          symbol = "none", lineStyle = list(color = PALETA_DENGUE[["sub"]], type = "solid", width = 1)
         )
 
       legenda <- c("Limite inferior", "Limite superior", "Mediana (Q2)", nome_obs)
@@ -578,7 +567,7 @@ mod_diagrama_controle_server <- function(id, serie_semanal, geo) {
           echarts4r::e_area(
             faixa_ic_amp, name = nome_ip, stack = "ic_prev", symbol = "none",
             silent = TRUE, lineStyle = list(opacity = 0),
-            areaStyle = list(color = COR_PREV_GLOBAL, opacity = 0.16),
+            areaStyle = list(color = COR_PREV_GLOBAL, opacity = 0.10),
             itemStyle = list(color = COR_PREV_GLOBAL)
           )
         legenda <- c(legenda, nome_ip)
@@ -607,7 +596,7 @@ mod_diagrama_controle_server <- function(id, serie_semanal, geo) {
             interval = 3, formatter = js_eixo_x, lineHeight = 15,
             rich = list(
               se = list(fontSize = 11),
-              yr = list(fontSize = 9, color = PALETA_CHOCOLATE[["taupe"]],
+              yr = list(fontSize = 9, color = PALETA_DENGUE[["sub"]],
                         padding = list(3, 0, 0, 0))
             )
           )
@@ -619,7 +608,8 @@ mod_diagrama_controle_server <- function(id, serie_semanal, geo) {
         echarts4r::e_legend(data = as.list(legenda), bottom = 0, type = "scroll") |>
         echarts4r::e_grid(left = 70, right = 24, top = 24, bottom = 88) |>
         echarts4r::e_tooltip(trigger = "axis", formatter = js_tooltip) |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
   })
 }

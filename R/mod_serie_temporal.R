@@ -89,8 +89,8 @@ mod_serie_temporal_server <- function(id, geo, serie_semanal) {
           name       = nome_obs,
           symbol     = "none",
           smooth     = FALSE,
-          lineStyle  = list(color = PALETA_CHOCOLATE[["chocolate"]], width = 2),
-          itemStyle  = list(color = PALETA_CHOCOLATE[["chocolate"]])
+          lineStyle  = list(color = PALETA_DENGUE[["dengue"]], width = 2),
+          itemStyle  = list(color = PALETA_DENGUE[["dengue"]])
         )
       
       if (isTRUE(input$mostrar_est)) {
@@ -99,8 +99,8 @@ mod_serie_temporal_server <- function(id, geo, serie_semanal) {
             est,
             name      = nome_est,
             symbol    = "none",
-            lineStyle = list(color = PALETA_CHOCOLATE[["ambar"]], width = 2, type = "dashed"),
-            itemStyle = list(color = PALETA_CHOCOLATE[["ambar"]])
+            lineStyle = list(color = SERIES_CENARIOS[[3]], width = 2, type = "dashed"),
+            itemStyle = list(color = SERIES_CENARIOS[[3]])
           )
       }
       
@@ -115,7 +115,8 @@ mod_serie_temporal_server <- function(id, geo, serie_semanal) {
         echarts4r::e_legend(top = 0, type = "scroll") |>
         echarts4r::e_grid(left = 70, right = 24, top = 40, bottom = 78) |>
         echarts4r::e_tooltip(trigger = "axis", formatter = js_tooltip) |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
   })
 }

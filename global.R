@@ -436,39 +436,82 @@ message(sprintf(
   nrow(SERIE_MUNICIPIOS), dplyr::n_distinct(SERIE_MUNICIPIOS$municipio_geocodigo)
 ))
 
-# ----------------------------------------------------- paleta chocolate -----
-# Rampa sequencial creme -> chocolate. Definida AQUI, e nao em R/utils_ui.R,
-# porque os modulos em R/ sao carregados em ordem alfabetica: utils_ui.R viria
-# por ultimo e as constantes de cor no topo dos modulos nao a encontrariam.
-PALETA_CHOCOLATE <- c(
-  creme     = "#FDF7F0",
-  baunilha  = "#F3E4D2",
-  areia     = "#EBD5B8",
-  caramelo  = "#CBA074",
-  cacau     = "#A9743F",
-  chocolate = "#7A4A22",
-  amargo    = "#4A2A10",
-  ambar     = "#C9791F",  # acento quente, para series que precisam se separar
-  taupe     = "#8A6A4F",  # neutro da familia, para linhas de referencia
-  tinta     = "#3E2110"   # quase preto amarronzado, para a serie em foco
+# ------------------------------------------------------------- paleta dengue --
+# Identidade visual comum aos tres paineis (dengue_df, dengue_ride e
+# PVdengue_df), baseada no guia Cenarios+: azul Cenarios na interface e uma
+# rampa terracota que representa a dengue (nao ha cor oficial no MS nem na
+# SES-DF; a familia laranja-avermelhada e a associacao mais comum). Mesmos
+# valores em config/global.R do dengue_df e R/utils_app_theme.R do PV.
+#
+# Definida AQUI, e nao em R/utils_ui.R, porque os modulos em R/ sao
+# carregados em ordem alfabetica: utils_ui.R viria por ultimo e as constantes
+# de cor no topo dos modulos nao a encontrariam.
+#
+# Regras de uso:
+#   - magnitude (incidencia, casos)   -> TONS_DENGUE, claro = pouco, escuro = muito
+#   - polaridade (Rt, razao historica) -> azul abaixo do limiar, terracota acima
+#   - estado (alerta, obito)           -> ok/atencao/grave/critico, sempre com rotulo
+#   - categorias (modelos, classes)    -> SERIES_CENARIOS, na ordem, sem reciclar
+# Validado para daltonismo (protan/deutan) e contraste sobre fundo branco.
+TONS_DENGUE <- c(
+  `50`  = "#FFF2EB", `100` = "#FDDDCF", `200` = "#F7C0A8", `300` = "#ED9E7C",
+  `400` = "#D97F55", `500` = "#C0663C", `600` = "#A34F25", `700` = "#853B15",
+  `800` = "#682B0A", `900` = "#4E1D03"
 )
 
-#' Rampa continua, do creme ao amargo. Para e_visual_map(type = "continuous").
-RAMPA_CHOCOLATE <- unname(PALETA_CHOCOLATE[
-  c("creme", "areia", "caramelo", "cacau", "chocolate", "amargo")
-])
+TONS_AZUL <- c(
+  `50`  = "#ECF7FE", `100` = "#CFE9F9", `200` = "#A8D5F1", `300` = "#7ABEE6",
+  `400` = "#4FA4D3", `500` = "#3891C0", `600` = "#0E7BA8", `700` = "#00638C",
+  `800` = "#004565", `900` = "#00324C"
+)
+
+PALETA_DENGUE <- c(
+  fundo       = "#F2F6F9",
+  superficie  = "#FFFFFF",
+  linha       = "#D8E3EA",
+  tinta       = "#12222B",  # titulos de grafico, numeros, serie em foco
+  texto       = "#4A4A4A",  # corpo
+  sub         = "#7A8B95",  # eixos, legendas, linhas de referencia
+  neutro      = "#B8C4CC",  # "sem dado", "ignorado"
+  azul        = TONS_AZUL[["500"]],
+  azul_acao   = TONS_AZUL[["600"]],
+  azul_titulo = TONS_AZUL[["700"]],
+  dengue      = TONS_DENGUE[["500"]],
+  dengue_forte = TONS_DENGUE[["700"]],
+  ok          = "#17895B",
+  atencao     = "#DCA744",
+  grave       = "#C65D26",
+  critico     = "#8F2639"
+)
+
+SERIES_CENARIOS <- c("#3891C0", "#C0663C", "#6C5CA8", "#5A9E2E",
+                     "#8E3B46", "#B08A1E", "#3F4E9E", "#1B9AAA")
+
+#' Rampa continua da dengue. Para e_visual_map(type = "continuous").
+RAMPA_DENGUE <- unname(TONS_DENGUE[c("50", "200", "300", "500", "700", "900")])
+
+# Fonte dos graficos echarts (o echarts nao herda a fonte do CSS da pagina).
+FONTE_GRAFICO <- "'DM Sans', system-ui, sans-serif"
+
+#' Converte "#RRGGBB" em "rgba(r,g,b,a)" (echarts aceita os dois; rgba
+#' quando a cor precisa de transparencia).
+cor_alpha <- function(hex, alpha) {
+  rgb <- grDevices::col2rgb(hex)[, 1]
+  sprintf("rgba(%d,%d,%d,%s)", rgb[1], rgb[2], rgb[3], alpha)
+}
 
 # ------------------------------------------------- escala de incidencia -----
 # Cortes usados pelo Ministerio da Saude (casos/100 mil hab.):
 # < 100 baixa, 100-299 media, >= 300 alta. Os dois ultimos niveis separam
-# situacoes epidemicas que a faixa ">= 300" sozinha achataria.
+# situacoes epidemicas que a faixa ">= 300" sozinha achataria. Tons a partir
+# do 200: o mais claro ainda se separa do fundo branco do mapa.
 PECAS_INCIDENCIA <- list(
-  list(min = 1000,             label = "≥ 1.000",   color = PALETA_CHOCOLATE[["amargo"]]),
-  list(min = 500,  max = 1000, label = "500 – 999", color = PALETA_CHOCOLATE[["chocolate"]]),
-  list(min = 300,  max = 500,  label = "300 – 499", color = PALETA_CHOCOLATE[["cacau"]]),
-  list(min = 100,  max = 300,  label = "100 – 299", color = PALETA_CHOCOLATE[["caramelo"]]),
-  list(min = 0.01, max = 100,  label = "< 100",     color = PALETA_CHOCOLATE[["areia"]]),
-  list(value = 0,              label = "Sem casos", color = PALETA_CHOCOLATE[["creme"]])
+  list(min = 1000,             label = "≥ 1.000",   color = TONS_DENGUE[["900"]]),
+  list(min = 500,  max = 1000, label = "500 – 999", color = TONS_DENGUE[["700"]]),
+  list(min = 300,  max = 500,  label = "300 – 499", color = TONS_DENGUE[["500"]]),
+  list(min = 100,  max = 300,  label = "100 – 299", color = TONS_DENGUE[["300"]]),
+  list(min = 0.01, max = 100,  label = "< 100",     color = TONS_DENGUE[["100"]]),
+  list(value = 0,              label = "Sem casos", color = PALETA_DENGUE[["fundo"]])
 )
 
 # ----------------------------------------------------------------- helpers ---

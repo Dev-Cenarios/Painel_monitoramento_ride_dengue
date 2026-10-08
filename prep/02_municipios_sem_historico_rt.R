@@ -38,12 +38,15 @@ janela <- suppressWarnings(as.integer(arg1))
 if (is.na(janela)) janela <- 4L
 
 # Reaproveita SOMENTE a funcao de calculo (pura) do modulo do mapa - nao
-# carrega Shiny nem o resto do app. R/mod_mapa_rt.R usa PALETA_CHOCOLATE (de
-# global.R) so pra definir cores de UI no topo do arquivo (CORES_QUADRANTE);
-# um stub basta pra esse source nao quebrar - as cores nao sao usadas aqui.
-if (!exists("PALETA_CHOCOLATE")) {
-  PALETA_CHOCOLATE <- c(cacau = "#A9743F", caramelo = "#CBA074", chocolate = "#7A4A22",
-                        amargo = "#4A2A10", taupe = "#8A6A4F", creme = "#FDF7F0")
+# carrega Shiny nem o resto do app. R/mod_mapa_rt.R usa TONS_AZUL, TONS_DENGUE
+# e PALETA_DENGUE (de global.R) so pra definir cores de UI no topo do arquivo
+# (CORES_QUADRANTE); um stub basta pra esse source nao quebrar - as cores nao
+# sao usadas aqui.
+if (!exists("PALETA_DENGUE")) {
+  TONS_AZUL     <- c(`400` = "#4FA4D3", `700` = "#00638C")
+  TONS_DENGUE   <- c(`400` = "#D97F55", `700` = "#853B15")
+  PALETA_DENGUE <- c(sub = "#7A8B95", tinta = "#12222B", superficie = "#FFFFFF",
+                     linha = "#D8E3EA")
 }
 source("R/mod_mapa_rt.R", local = FALSE, encoding = "UTF-8")
 

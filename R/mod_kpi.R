@@ -9,7 +9,7 @@
 #
 # Os boxes sao renderizados via uiOutput em vez de fixados na UI porque a COR
 # carrega informacao: a linha inteira escurece conforme a situacao se agrava,
-# seguindo a rampa creme -> chocolate. `theme` do value_box e definido na
+# seguindo a rampa da dengue (TONS_DENGUE). `theme` do value_box e definido na
 # construcao, entao os boxes precisam ser reconstruidos a cada mudanca de
 # recorte.
 #
@@ -55,28 +55,28 @@ mod_kpi_server <- function(id, geo, serie_semanal) {
     })
     
     # value_box_theme() em vez dos temas nomeados do Bootstrap: a rampa
-    # chocolate precisa de controle exato do par fundo/texto, porque nas
+    # da dengue precisa de controle exato do par fundo/texto, porque nas
     # tonalidades claras o texto tem de ser escuro para permanecer legivel.
-    tom <- function(nome, claro = FALSE) {
+    tom <- function(bg, claro = FALSE) {
       bslib::value_box_theme(
-        bg = PALETA_CHOCOLATE[[nome]],
-        fg = if (claro) PALETA_CHOCOLATE[["amargo"]] else "#FFFFFF"
+        bg = bg,
+        fg = if (claro) PALETA_DENGUE[["tinta"]] else "#FFFFFF"
       )
     }
     
     # Faixas do MS traduzidas em intensidade de cor: quanto mais escuro,
     # maior a incidencia. Mesma logica do mapa e do heatmap.
     tema_incidencia <- function(inc) {
-      if (is.na(inc)) return(tom("baunilha", claro = TRUE))
-      if (inc >= 300) return(tom("amargo"))
-      if (inc >= 100) return(tom("cacau"))
-      tom("areia", claro = TRUE)
+      if (is.na(inc)) return(tom(PALETA_DENGUE[["linha"]], claro = TRUE))
+      if (inc >= 300) return(tom(TONS_DENGUE[["800"]]))
+      if (inc >= 100) return(tom(TONS_DENGUE[["600"]]))
+      tom(TONS_DENGUE[["100"]], claro = TRUE)
     }
     
     tema_rt <- function(rt) {
-      if (is.na(rt)) return(tom("baunilha", claro = TRUE))
-      if (rt > 1)    return(tom("amargo"))
-      tom("areia", claro = TRUE)
+      if (is.na(rt)) return(tom(PALETA_DENGUE[["linha"]], claro = TRUE))
+      if (rt > 1)    return(tom(TONS_DENGUE[["800"]]))
+      tom(TONS_AZUL[["100"]], claro = TRUE)
     }
     
     output$boxes <- shiny::renderUI({
@@ -97,7 +97,7 @@ mod_kpi_server <- function(id, geo, serie_semanal) {
         bslib::value_box(
           title = sprintf("Casos acumulados em %d", k$ano),
           value = fmt_int(k$casos_ano),
-          theme = tom("chocolate"),
+          theme = tom(PALETA_DENGUE[["dengue_forte"]]),
           shiny::tags$span(
             class = "small",
             sprintf("%s no histórico completo", fmt_int(k$casos_total))
@@ -135,7 +135,7 @@ mod_kpi_server <- function(id, geo, serie_semanal) {
         bslib::value_box(
           title = "Recorte",
           value = g$rotulo,
-          theme = tom("taupe"),
+          theme = tom(PALETA_DENGUE[["azul_titulo"]]),
           shiny::tags$span(
             class = "small",
             sprintf("%s município(s) · %s semanas",

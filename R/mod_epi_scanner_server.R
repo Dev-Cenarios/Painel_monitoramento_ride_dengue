@@ -108,7 +108,7 @@ mod_epi_scanner_server <- function(id) {
           # codigo IBGE cru como rotulo ao passar o mouse (emphasis.label).
           label        = list(show = FALSE),
           emphasis     = list(
-            itemStyle = list(areaColor = PALETA_CHOCOLATE[["ambar"]]),
+            itemStyle = list(areaColor = TONS_AZUL[["300"]]),
             label     = list(show = FALSE)
           )
         ) |>
@@ -118,13 +118,14 @@ mod_epi_scanner_server <- function(id) {
           orient    = "vertical",
           left      = "left",
           bottom    = "6%",
-          inRange   = list(color = RAMPA_CHOCOLATE),
+          inRange   = list(color = RAMPA_DENGUE),
           formatter = htmlwidgets::JS(
             "function(v){return v.toLocaleString('pt-BR',{maximumFractionDigits:1});}"
           )
         ) |>
         echarts4r::e_tooltip(trigger = "item", formatter = js_tooltip) |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
     
     # -- tabela: Top 10 pela metrica selecionada -------------------------------

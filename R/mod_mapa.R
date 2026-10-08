@@ -28,7 +28,7 @@
 # de local selecionado (server.R). Um observer traduz esse estado numa
 # mensagem para o handler JS 'dengue_map_highlight' (mod_mapa_saida), que
 # marca o poligono escolhido com o estado 'select' do ECharts (areaColor
-# ambar) e reduz a opacidade do restante da serie - SEM re-renderizar o mapa.
+# azul) e reduz a opacidade do restante da serie - SEM re-renderizar o mapa.
 # O reset (botao "Visao geral" -> clear_selected_location()) chega como
 # nivel != "municipio": o handler faz unselect e devolve a opacidade cheia.
 # ==============================================================================
@@ -301,17 +301,17 @@ mod_mapa_server <- function(id, selected_location = shiny::reactive(NULL)) {
           # tooltip customizado (abaixo) ja resolvendo o nome legivel certo.
           label        = list(show = FALSE),
           emphasis     = list(
-            itemStyle = list(areaColor = PALETA_CHOCOLATE[["ambar"]]),
+            itemStyle = list(areaColor = TONS_AZUL[["300"]]),
             label     = list(show = FALSE)
           ),
           # Estado "select": e por ele que o destaque persistente do local
           # escolhido e aplicado (dispatchAction 'select' pelo handler JS em
-          # mod_mapa_saida). areaColor ambar + opacidade cheia; o restante da
+          # mod_mapa_saida). areaColor azul (fora da rampa terracota) + opacidade cheia; o restante da
           # serie recebe opacity reduzida via setOption no mesmo handler.
           # selectedMode = "single": um novo 'select' substitui o anterior.
           selectedMode = "single",
           select       = list(
-            itemStyle = list(areaColor = PALETA_CHOCOLATE[["ambar"]], opacity = 1),
+            itemStyle = list(areaColor = PALETA_DENGUE[["azul_acao"]], opacity = 1),
             label     = list(show = FALSE)
           )
         )
@@ -334,7 +334,7 @@ mod_mapa_server <- function(id, selected_location = shiny::reactive(NULL)) {
             orient = "vertical",
             left   = "left",
             bottom = "6%",
-            inRange = list(color = RAMPA_CHOCOLATE),
+            inRange = list(color = RAMPA_DENGUE),
             formatter = htmlwidgets::JS(
               "function(v){return v.toLocaleString('pt-BR',{maximumFractionDigits:0});}"
             )
@@ -344,6 +344,7 @@ mod_mapa_server <- function(id, selected_location = shiny::reactive(NULL)) {
       grafico |>
         echarts4r::e_tooltip(trigger = "item", formatter = js_tooltip) |>
         echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO) |>
         echarts4r::e_on(query = NULL, handler = js_click, event = "click")
     })
     

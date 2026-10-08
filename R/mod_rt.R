@@ -129,7 +129,7 @@ mod_rt_server <- function(id, geo, serie_semanal) {
            return txt;
          }",
         tabela_js,
-        PALETA_CHOCOLATE[["amargo"]], PALETA_CHOCOLATE[["taupe"]],
+        PALETA_DENGUE[["dengue_forte"]], PALETA_DENGUE[["azul_titulo"]],
         fmt_data, if (agregado()) "true" else "false"
       ))
       
@@ -145,16 +145,16 @@ mod_rt_server <- function(id, geo, serie_semanal) {
           rt,
           name      = "Rt",
           symbol    = "none",
-          lineStyle = list(color = PALETA_CHOCOLATE[["chocolate"]], width = 2),
-          itemStyle = list(color = PALETA_CHOCOLATE[["chocolate"]])
+          lineStyle = list(color = PALETA_DENGUE[["dengue"]], width = 2),
+          itemStyle = list(color = PALETA_DENGUE[["dengue"]])
         ) |>
         echarts4r::e_line(
           limiar,
           name      = "Limiar (Rt = 1)",
           symbol    = "none",
           silent    = TRUE,
-          lineStyle = list(color = PALETA_CHOCOLATE[["ambar"]], width = 1.5, type = "dashed"),
-          itemStyle = list(color = PALETA_CHOCOLATE[["ambar"]]),
+          lineStyle = list(color = PALETA_DENGUE[["tinta"]], width = 1.5, type = "dashed"),
+          itemStyle = list(color = PALETA_DENGUE[["tinta"]]),
           tooltip   = list(show = FALSE)
         ) |>
         echarts4r::e_x_axis(axisLabel = list(formatter = js_eixo)) |>
@@ -169,7 +169,8 @@ mod_rt_server <- function(id, geo, serie_semanal) {
         echarts4r::e_legend(top = 0, type = "scroll") |>
         echarts4r::e_grid(left = 60, right = 24, top = 40, bottom = 78) |>
         echarts4r::e_tooltip(trigger = "axis", formatter = js_tooltip) |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
   })
 }

@@ -8,44 +8,55 @@
 # preset = "zephyr" exige bslib >= 0.6.0. Em versoes anteriores, troque por
 # bootswatch = "zephyr" - o resultado visual e praticamente o mesmo.
 #
-# Paleta: primary e a moldura (cabecalhos de card, links), navy sobrio.
-# O vermelho fica reservado para `danger`, onde carrega significado
-# epidemiologico: Rt > 1, incidencia alta, alertas. Se primary fosse vermelho,
-# o painel inteiro ficaria vermelho e o alerta deixaria de se destacar.
-# preset = "zephyr" exige bslib >= 0.6.0. Em versoes anteriores, troque por
-# bootswatch = "zephyr" - o resultado visual e praticamente o mesmo.
-#
-# Paleta chocolate (PALETA_CHOCOLATE, em global.R): fundo creme, cards brancos,
-# cabecalhos em chocolate medio. `danger` e o extremo escuro da rampa, nao uma
-# cor de fora dela - assim o alerta continua se destacando por CONTRASTE de
-# luminosidade, sem quebrar a identidade visual.
+# Paleta (PALETA_DENGUE, em global.R): interface em azul Cenarios (moldura,
+# cabecalhos, links), fundo cinza-azulado, cards brancos. A terracota fica
+# para os dados de dengue e o vermelho `danger` para alertas (obito, Rt alto)
+# - se a moldura tivesse a cor do dado, o alerta deixaria de se destacar.
+# Tipografia do guia Cenarios+: Poppins nos titulos, DM Sans no corpo.
 TEMA_DENGUE3D <- bslib::bs_theme(
   version = 5,
   preset  = "zephyr",
-  
-  bg = "#FAF6F1",
-  fg = "#3B2A1D",
-  
-  primary   = PALETA_CHOCOLATE[["chocolate"]],
-  secondary = PALETA_CHOCOLATE[["taupe"]],
-  success   = PALETA_CHOCOLATE[["cacau"]],
-  warning   = PALETA_CHOCOLATE[["ambar"]],
-  danger    = PALETA_CHOCOLATE[["amargo"]],
-  info      = PALETA_CHOCOLATE[["caramelo"]],
-  
+
+  bg = PALETA_DENGUE[["fundo"]],
+  fg = PALETA_DENGUE[["texto"]],
+
+  primary   = PALETA_DENGUE[["azul_acao"]],
+  secondary = PALETA_DENGUE[["sub"]],
+  success   = PALETA_DENGUE[["ok"]],
+  warning   = PALETA_DENGUE[["atencao"]],
+  danger    = PALETA_DENGUE[["critico"]],
+  info      = PALETA_DENGUE[["azul"]],
+
   base_font = bslib::font_collection(
-    bslib::font_google("Inter", local = FALSE),
+    bslib::font_google("DM Sans", wght = c(400, 500, 700), local = FALSE),
     "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"
   ),
-  
+  heading_font = bslib::font_collection(
+    bslib::font_google("Poppins", wght = c(600, 700), local = FALSE),
+    "system-ui", "sans-serif"
+  ),
+
+  "headings-color"     = PALETA_DENGUE[["azul_titulo"]],
+  "body-color"         = PALETA_DENGUE[["texto"]],
+  "link-color"         = PALETA_DENGUE[["azul_acao"]],
   "border-radius"      = "0.65rem",
   "border-radius-sm"   = "0.45rem",
   "card-border-radius" = "0.65rem",
   "card-cap-padding-y" = "0.6rem",
-  "card-border-color"  = "rgba(74,42,16,.12)",
-  "card-bg"            = "#FFFFFF",
+  "card-border-color"  = PALETA_DENGUE[["linha"]],
+  "card-bg"            = PALETA_DENGUE[["superficie"]],
   "enable-shadows"     = TRUE
-)
+) |>
+  bslib::bs_add_rules(sprintf("
+    .card-header.bg-primary { background-color: %s !important; }
+    .card-header, .card-header .fw-semibold, .navbar-brand {
+      font-family: Poppins, system-ui, sans-serif;
+    }
+    .value-box-value, .bslib-value-box .value-box-value, table td {
+      font-variant-numeric: tabular-nums;
+    }
+    .value-box-value { font-weight: 700; }
+  ", PALETA_DENGUE[["azul_titulo"]]))
 
 
 # --------------------------------------------------------------- helpers ----

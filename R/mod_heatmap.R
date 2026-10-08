@@ -134,7 +134,7 @@ mod_heatmap_server <- function(id, geo, serie_semanal) {
             orient  = "horizontal",
             left    = "center",
             bottom  = 0,
-            inRange = list(color = RAMPA_CHOCOLATE),
+            inRange = list(color = RAMPA_DENGUE),
             formatter = htmlwidgets::JS(
               "function(v){return v.toLocaleString('pt-BR',{maximumFractionDigits:0});}"
             )
@@ -156,7 +156,8 @@ mod_heatmap_server <- function(id, geo, serie_semanal) {
         ) |>
         echarts4r::e_grid(left = 60, right = 24, top = 20, bottom = 90) |>
         echarts4r::e_tooltip(trigger = "item", formatter = js_tooltip) |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
   })
 }

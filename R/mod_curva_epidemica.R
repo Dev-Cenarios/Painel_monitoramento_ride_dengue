@@ -26,9 +26,9 @@
 # COR_ATUAL/COR_NOWCAST sem prefixo colidiriam com as constantes de mesmo
 # nome em R/mod_diagrama_controle.R (que carrega depois, em ordem alfabetica,
 # e sobrescreveria estas aqui silenciosamente - sem erro, so cor errada).
-COR_CURVA_HIST_MEDIANA <- PALETA_CHOCOLATE[["taupe"]]
-COR_CURVA_ATUAL        <- PALETA_CHOCOLATE[["tinta"]]
-COR_CURVA_NOWCAST      <- PALETA_CHOCOLATE[["ambar"]]
+COR_CURVA_HIST_MEDIANA <- PALETA_DENGUE[["azul_acao"]]
+COR_CURVA_ATUAL        <- PALETA_DENGUE[["tinta"]]
+COR_CURVA_NOWCAST      <- SERIES_CENARIOS[[3]]
 
 
 mod_curva_epidemica_controles <- function(id) {
@@ -51,7 +51,7 @@ mod_curva_epidemica_controles <- function(id) {
       shiny::tags$small(
         "Barras: soma dos casos notificados daquela semana em todas as ",
         "temporadas de referência (mais escuras perto do máximo histórico). ",
-        "Linha cinza: mediana histórica. Semana no eixo segue o ano ",
+        "Linha azul: mediana histórica. Semana no eixo segue o ano ",
         "sanitário (27 a 26), igual ao diagrama de controle."
       )
     )
@@ -134,7 +134,7 @@ mod_curva_epidemica_server <- function(id, serie_semanal) {
       if (!is.finite(max_hist) || max_hist <= 0) max_hist <- 1
       
       # Barra mais escura quanto mais perto do maximo historico - mesma
-      # linguagem visual do mapa/KPIs (PALETA_CHOCOLATE, escuro = mais alto).
+      # linguagem visual do mapa/KPIs (TONS_DENGUE, escuro = mais alto).
       js_cor_barra <- htmlwidgets::JS(sprintf(
         "function(p){
            var v = p.value, m = %s;
@@ -144,10 +144,10 @@ mod_curva_epidemica_server <- function(id, serie_semanal) {
            return '%s';
          }",
         max_hist,
-        PALETA_CHOCOLATE[["baunilha"]],
-        PALETA_CHOCOLATE[["amargo"]],
-        PALETA_CHOCOLATE[["chocolate"]],
-        PALETA_CHOCOLATE[["caramelo"]]
+        TONS_DENGUE[["100"]],
+        TONS_DENGUE[["600"]],
+        TONS_DENGUE[["400"]],
+        TONS_DENGUE[["200"]]
       ))
       
       # Posicao (indice 0-based) da ultima semana antes da virada de temporada
@@ -187,7 +187,7 @@ mod_curva_epidemica_server <- function(id, serie_semanal) {
           data      = list(xAxis = idx_corte),
           title     = "",
           symbol    = "none",
-          lineStyle = list(color = "gray", type = "solid", width = 1)
+          lineStyle = list(color = PALETA_DENGUE[["sub"]], type = "solid", width = 1)
         )
       
       if (isTRUE(input$mostrar_nowcast)) {
@@ -214,7 +214,8 @@ mod_curva_epidemica_server <- function(id, serie_semanal) {
         echarts4r::e_legend(data = as.list(legenda), top = 0, type = "scroll") |>
         echarts4r::e_grid(left = 70, right = 24, top = 40, bottom = 60) |>
         echarts4r::e_tooltip(trigger = "axis") |>
-        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem")
+        echarts4r::e_toolbox_feature("saveAsImage", title = "Salvar imagem") |>
+        echarts4r::e_text_style(fontFamily = FONTE_GRAFICO)
     })
   })
 }
